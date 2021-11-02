@@ -48,9 +48,6 @@ void capture(rs2::pipeline p, string serial, NetworkPublisher *np, Dealer *deale
 	frameset fs = p.wait_for_frames();
 
     rs2::frameset aligned_set = align_to_color.process(fs);
-
-    // if (!fs || !fs.get_depth_frame() || !fs.get_color_frame()) continue;
-
     rs2::frame color_mat = aligned_set.get_color_frame();
 
     // for each frame get the Depth data and Colored data(RGB images) frame from the RealSense
@@ -66,11 +63,6 @@ void capture(rs2::pipeline p, string serial, NetworkPublisher *np, Dealer *deale
 
     // Creating OpenCV Matrix from a color image(RGB images)
     Mat color(Size(848, 480), CV_8UC3, (void*)color_mat.get_data(), Mat::AUTO_STEP);
-    // Creating OpenCV Matrix from a depth image
-    // cv::namedWindow("Display Depth window"+serial,cv::WINDOW_AUTOSIZE);
-    // cv::namedWindow("Display Color window"+serial,cv::WINDOW_AUTOSIZE);
-    // imshow("Display Depth window"+serial, depth_image);
-    // imshow("Display Color window"+serial, color);
 
     // saving the RGB image as a vector
     std::vector<uchar> outputImage;
@@ -124,11 +116,9 @@ void capture(rs2::pipeline p, string serial, NetworkPublisher *np, Dealer *deale
     stringstream geek(serial.substr(serial.size() - 4));
     int sourceID = 0;
     geek>>sourceID;
-    // cout << "Serial " << serial << " source " << sourceID << endl;
 
     // Creating a wrapper message for the Depth image to send it through the NetworkPublisher to the cnc-host
     PBMessage* message = np->NewMessage();
-    // message->set_source(sourceID);
     message->set_timestamp(timestamp_ms);
     message->set_allocated_depthimage(depthImageSample);
     // publish the message
@@ -136,7 +126,6 @@ void capture(rs2::pipeline p, string serial, NetworkPublisher *np, Dealer *deale
 
     // Creating a wrapper message for the RGB image to send it through the NetworkPublisher to the cnc-host
     PBMessage* msg = np->NewMessage();
-    // msg->set_source(sourceID);
     msg->set_timestamp(timestamp_ms);
     msg->set_allocated_image(imageSample);
     // publish the message
@@ -163,9 +152,6 @@ int main(const int argc, const char **argv) try
     config2->sourceId = 2;
     CommonsTool::InitLogging(config2);
 
-    // std::cout << config2->address << '\n';
-    // std::cout << CommonsTool::currentDir() << '\n';
-
     // inputing the path to config.ini file
     Config *config1 = CommonsTool::getConfig(argc, argv);
     // configuring the realsense client and the types of messages published
@@ -175,15 +161,6 @@ int main(const int argc, const char **argv) try
     config1->publishTypes.push_back(PBMessage::kDepthImage);
     config1->address = "tcp://127.0.0.1:6665";
     CommonsTool::InitLogging(config1);
-
-    // std::cout << config2->address <<  '\n';
-    // std::cout << config2->name <<  '\n';
-    // std::cout << config2->sourceId <<  '\n';
-    //
-    // std::cout << config1->address << '\n';
-    // std::cout << config1->name <<  '\n';
-    // std::cout << config1->sourceId <<  '\n';
-    // std::cout << CommonsTool::currentDir() << '\n';
 
     // Create a message publisher
     NetworkPublisher *np2 = new NetworkPublisher();
@@ -217,10 +194,10 @@ int main(const int argc, const char **argv) try
 			cout << "Configuring camera : " << serial << endl;
 
 			// Add desired stream to configuration
-            cfg.enable_stream(RS2_STREAM_DEPTH, 848, 480, RS2_FORMAT_Z16, 6);
+            		cfg.enable_stream(RS2_STREAM_DEPTH, 848, 480, RS2_FORMAT_Z16, 6);
 
-            // Add desired streams to configuration
-            cfg.enable_stream(RS2_STREAM_COLOR, 848, 480, RS2_FORMAT_BGR8, 6);
+            		// Add desired streams to configuration
+            		cfg.enable_stream(RS2_STREAM_COLOR, 848, 480, RS2_FORMAT_BGR8, 6);
 
 
 			cfg.enable_device(serial);
@@ -261,7 +238,7 @@ int main(const int argc, const char **argv) try
     np2->Stop();
     dealer1->Stop();
     np1->Stop();
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 catch (const rs2::error & e)
